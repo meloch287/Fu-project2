@@ -1,0 +1,172 @@
+import re
+
+edenits = {
+    'ноль': 0, 'один': 1, 'два': 2, 'три': 3, 'четыре': 4, 'пять': 5, 'шесть': 6, 'семь': 7,
+    'восемь': 8, 'девять': 9
+}
+desyat = {
+    'десять': 10, 'одиннадцать': 11, 'двенадцать': 12, 'тринадцать': 13, 'четырнадцать': 14,
+    'пятнадцать': 15, 'шестнадцать': 16, 'семнадцать': 17, 'восемнадцать': 18, 'девятнадцать': 19
+}
+
+desyatki = {
+    'двадцать': 20, 'тридцать': 30, 'сорок': 40, 'пятьдесят': 50, 'шестьдесят': 60,
+    'семьдесят': 70, 'восемьдесят': 80, 'девяносто': 90
+}
+
+znaki = {
+    'плюс': '+',
+    'минус': '-',
+    'умножить на': '*',
+    'разделить на': '/',
+    'в степени': '**',
+    'скобка открывается': '(',
+    'скобка закрывается': ')'
+}
+
+edenits1 = {
+    0: 'ноль', 1: 'один', 2: 'два', 3: 'три', 4: 'четыре',
+    5: 'пять', 6: 'шесть', 7: 'семь', 8: 'восемь', 9: 'девять'
+}
+desyat1 = {
+    10: 'десять', 11: 'одиннадцать', 12: 'двенадцать',
+    13: 'тринадцать', 14: 'четырнадцать', 15: 'пятнадцать',
+    16: 'шестнадцать', 17: 'семнадцать', 18: 'восемнадцать',
+    19: 'девятнадцать'
+}
+
+desyatki1 = {
+    20: 'двадцать', 30: 'тридцать', 40: 'сорок',
+    50: 'пятьдесят', 60: 'шестьдесят',
+    70: 'семьдесят', 80: 'восемьдесят',
+    90: 'девяносто'
+}
+
+
+def replace_to_nums(txt):
+
+    """
+    Converts number words in a string into digits.
+
+    This method replaces words representing numbers from 0 to 99 with their corresponding numeric values.
+    It also handles combinations of words for numbers between 20 and 99.
+
+    Parameters:
+    txt (str): The input string containing the number words.
+
+    Returns:
+    str: The modified string with the number words replaced with digits.
+    """
+
+    for word, num in {**edenits, **desyat}.items():
+        txt = re.sub(rf'\b{word}\b', str(num), txt)
+    for word, num in desyatki.items():
+        txt = re.sub(rf'\b{word}\b', str(num), txt)
+        for unit_word, unit_num in edenits.items():
+            combined_word = f"{word} {unit_word}"
+            txt = re.sub(rf'\b{combined_word}\b', str(num + unit_num), txt)
+    return txt
+
+def replace_to_znaki(txt):
+    """
+    Translates operations from words to symbolic representations.
+
+    This method replaces words denoting mathematical operations with their corresponding symbols.
+
+    Parameters:
+    txt (str): An input string containing operations as words.
+
+    Returns:
+    str: The modified string with operations replaced by symbols.
+    """
+    for word in znaki:
+        txt = txt.replace(word, znaki[word])
+
+    return txt
+
+
+def calc(s):
+    """
+    Calculates a mathematical expression given as a string.
+
+    This method converts numeric words and operations into their corresponding numeric and symbolic representations,
+    and then evaluates the expression using the built-in eval function.
+
+    Parameters:
+    s (str): The input string containing the math expression.
+
+    Returns:
+    int or float: The result of evaluating the expression.
+    """
+    s = replace_to_nums(s)
+    s = replace_to_znaki(s)
+    result = eval(s)  # используется для вычисления выражений, записанных в виде строк. Например, eval('1+1') вернет результат 2
+    return result
+
+def number_to_text(N):
+    """
+    Converts a numeric value to its text representation
+
+    Parameters:
+    N (int): The numeric value to convert.
+
+    Returns:
+    str: The text representation of the number in Russian.
+    """
+    if abs(N) < 10:
+        return edenits1[abs(N)]
+    elif abs(N) < 20:
+        return desyat1[abs(N)]
+    elif abs(N) < 100:
+        tens = (abs(N) // 10) * 10
+        units = abs(N) % 10
+        if units == 0:
+            return desyatki1[tens]
+        else:
+            return f"{desyatki1[tens]} {edenits1[units]}"
+    elif abs(N) < 1000:
+        hundreds = abs(N) // 100
+        remainder = abs(N) % 100
+        if remainder == 0:
+            return f"{edenits1[hundreds]} сто"
+        else:
+            return f"{edenits1[hundreds]} сто {number_to_text(remainder)}"
+    else:
+        thousands = abs(N) // 1000
+        remainder = abs(N) % 1000
+        if remainder == 0:
+            return f"{edenits1[thousands]} тысяча"
+        else:
+            return f"{edenits1[thousands]} тысяча {number_to_text(remainder)}"
+
+
+print("------------------------------------------------\n"
+          "Здравствуйте! Небольшая сводка помощи перед началом использования.\n"
+          "------------------------------------------------\n"
+          "Для выхода из программы введите 'стоп' \n"
+          "------------------------------------------------\n"
+          "Q: Как писать выражение?\n"
+          "A: [число - операция - число]\n"
+          "------------------------------------------------\n"
+          "Операции:\n"
+          "+ Сложение – плюс\n"
+          "- Вычитание – минус\n"
+          "* Умножение – умножить на\n"
+          "/ Деление - разделить на \n"
+          "** Степень - В степени \n"
+          "------------------------------------------------")
+
+while True:
+    s = input("Введите ваше математическое выражение: ").lower()
+
+    if s.lower() == 'стоп':
+        break
+
+    result = calc(s)  # # result variable
+
+    if result < 0:
+      aaa = 'минус ' + number_to_text(result)
+    else:
+      aaa = number_to_text(result)
+
+    print(f'Ответ: {aaa}')
